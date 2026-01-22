@@ -1,0 +1,79 @@
+services:
+  mitm:
+    image: debian:latest
+    privileged: true
+    container_name: MITM
+    hostname: MITM
+    tty: true
+    stdin_open: true
+    cap_add:
+      - ALL
+    networks:
+      net:
+        ipv4_address: 192.168.70.2
+    command: >                          # put anything you need to install on the machine here (as well as any config you may need to specify)
+      bash -c "
+        echo 'MITM configured successfully' &&
+        tail -f /dev/null
+       "
+
+  web_server:
+    image: debian:latest
+    container_name: server
+    hostname: server
+    tty: true
+    stdin_open: true
+    cap_add:
+      - ALL
+    networks:
+      net:
+        ipv4_address: 192.168.70.4
+    command: >                          # put anything you need to install on the machine here (as well as any config you may need to specify)
+      bash -c "
+        echo 'server configured successfully' &&
+        tail -f /dev/null
+       "
+
+  host:
+    image: debian:latest
+    container_name: host
+    hostname: host
+    tty: true
+    environment:
+      - DISPLAY=${DISPLAY}
+    stdin_open: true
+    cap_add:
+      - ALL
+    networks:
+      net:
+        ipv4_address: 192.168.70.3
+    volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix:ro    # X11 socket
+    - /dev/shm:/dev/shm                   # bigger shared memory avoids crashes
+    - ./tools/certs:/certs:ro             # importing CA
+    - ./tmp/logs:/logs:rw
+    - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority
+    command: >                          # put anything you need to install on the machine here (as well as any config you may need to specify)
+      bash -c "
+        apt update &&
+        apt install -y firefox-esr &&
+        echo 'host configured successfully' &&
+        firefox &&
+        tail -f /dev/null
+       "
+
+networks:
+  net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.70.0/24
+          gateway: 192.168.70.1
+
+## we might need to put host and a server on different networks. The following is there in that case:
+#  internal_net:
+#    driver: bridge
+#    ipam:
+#      config:
+#        - subnet: 192.168.70.0/24
+#          gateway: 192.168.70.1
