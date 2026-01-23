@@ -1,6 +1,6 @@
 services:
   mitm:
-    image: debian:latest
+    image: debian:bookworm
     privileged: true
     container_name: MITM
     hostname: MITM
@@ -11,11 +11,15 @@ services:
     networks:
       net:
         ipv4_address: 192.168.70.2
+    ports:
+      - "8080:8080"
     command: >                          # put anything you need to install on the machine here (as well as any config you may need to specify)
       bash -c "
-        echo 'MITM configured successfully' &&
-        tail -f /dev/null
-       "
+        apt-get update &&
+        apt-get install -y python3-pip ca-certificates &&
+        pip3 install mitmproxy --break-system-packages &&
+        mitmdump --listen-host 0.0.0.0 --listen-port 8080
+      "
 
   web_server:
     image: debian:latest
@@ -34,33 +38,28 @@ services:
         tail -f /dev/null
        "
 
-  host:
-    image: debian:latest
+ host:
+    image: debian:bookworm
     container_name: host
-    hostname: host
+    privileged: true
     tty: true
-    environment:
-      - DISPLAY=${DISPLAY}
     stdin_open: true
-    cap_add:
-      - ALL
+    environment:
+      - DISPLAY=$DISPLAY
     networks:
       net:
         ipv4_address: 192.168.70.3
     volumes:
-    - /tmp/.X11-unix:/tmp/.X11-unix:ro    # X11 socket
-    - /dev/shm:/dev/shm                   # bigger shared memory avoids crashes
-    - ./tools/certs:/certs:ro             # importing CA
-    - ./tmp/logs:/logs:rw
-    - ${XAUTHORITY:-$HOME/.Xauthority}:/root/.Xauthority
-    command: >                          # put anything you need to install on the machine here (as well as any config you may need to specify)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /dev/shm:/dev/shm:rw
+      - $HOME/.Xauthority:/root/.Xauthority:rw
+    command: >
       bash -c "
-        apt update &&
-        apt install -y firefox-esr &&
-        echo 'host configured successfully' &&
-        firefox &&
+        apt-get update &&
+        apt-get install -y firefox-esr dbus-x11 libgtk-3-0 libdbus-glib-1-2 libxt6 libcanberra-gtk-module libasound2 &&
+        echo 'Firefox ESR installed successfully' &&
         tail -f /dev/null
-       "
+      "
 
 networks:
   net:
