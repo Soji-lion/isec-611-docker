@@ -56,8 +56,14 @@ services:
     command: >
       bash -c "
         apt-get update &&
-        apt-get install -y firefox-esr dbus-x11 libgtk-3-0 libdbus-glib-1-2 libxt6 libcanberra-gtk-module libasound2 &&
+        apt-get install -y firefox-esr dbus-x11 libgtk-3-0 libdbus-glib-1-2 libxt6 libcanberra-gtk-module libasound2 wget xz-utils kdialog &&
         echo 'Firefox ESR installed successfully' &&
+        wget https://www.torproject.org/dist/torbrowser/15.0.4/tor-browser-linux-x86_64-15.0.4.tar.xz &&
+        tar -xvf tor-browser-linux-x86_64-15.0.4.tar.xz &&
+        cd tor-browser &&
+        sed -i '85,88d' ./Browser/start-tor-browser &&
+        ./start-tor-browser.desktop &&
+        firefox &&
         tail -f /dev/null
       "
 
