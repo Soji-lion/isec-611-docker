@@ -37,6 +37,10 @@ services:
                 \"installation_mode\": \"force_installed\",
                 \"install_url\": \"https://addons.mozilla.org/firefox/downloads/latest/noscript/latest.xpi\"
               }
+              \"browsec@browsec.com\": {
+                \"installation_mode\": \"force_installed\",
+               \"install_url\": \"https://addons.mozilla.org/firefox/downloads/latest/browsec/latest.xpi\"
+              }
             }
           }
         }' > /usr/lib/firefox-esr/distribution/policies.json &&
