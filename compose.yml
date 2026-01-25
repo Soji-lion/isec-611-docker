@@ -1,43 +1,6 @@
+version: "3.8"
+
 services:
-  mitm:
-    image: debian:bookworm
-    privileged: true
-    container_name: MITM
-    hostname: MITM
-    tty: true
-    stdin_open: true
-    cap_add:
-      - ALL
-    networks:
-      net:
-        ipv4_address: 192.168.70.2
-    ports:
-      - "8080:8080"
-    command: >                          # put anything you need to install on the machine here (as well as any config you may need to specify)
-      bash -c "
-        apt-get update &&
-        apt-get install -y python3-pip ca-certificates &&
-        pip3 install mitmproxy --break-system-packages &&
-        mitmdump --listen-host 0.0.0.0 --listen-port 8080
-      "
-
-  web_server:
-    image: debian:latest
-    container_name: server
-    hostname: server
-    tty: true
-    stdin_open: true
-    cap_add:
-      - ALL
-    networks:
-      net:
-        ipv4_address: 192.168.70.4
-    command: >                          # put anything you need to install on the machine here (as well as any config you may need to specify)
-      bash -c "
-        echo 'server configured successfully' &&
-        tail -f /dev/null
-       "
-
   host:
     image: debian:bookworm
     container_name: host
@@ -47,38 +10,73 @@ services:
     environment:
       - DISPLAY=$DISPLAY
     networks:
-      net:
-        ipv4_address: 192.168.70.3
+      client-net:
+        ipv4_address: 192.168.71.3
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - /dev/shm:/dev/shm:rw
       - $HOME/.Xauthority:/root/.Xauthority:rw
-    command: >
+    command: |
       bash -c "
         apt-get update &&
-        apt-get install -y firefox-esr dbus-x11 libgtk-3-0 libdbus-glib-1-2 libxt6 libcanberra-gtk-module libasound2 wget xz-utils kdialog &&
-        echo 'Firefox ESR installed successfully' &&
-        wget https://www.torproject.org/dist/torbrowser/15.0.4/tor-browser-linux-x86_64-15.0.4.tar.xz &&
-        tar -xvf tor-browser-linux-x86_64-15.0.4.tar.xz &&
-        cd tor-browser &&
-        sed -i '85,88d' ./Browser/start-tor-browser &&
-        ./start-tor-browser.desktop &&
-        firefox &&
-        tail -f /dev/null
+        apt-get install -y firefox-esr dbus-x11 ca-certificates wget curl iputils-ping &&
+        mkdir -p /usr/lib/firefox-esr/distribution &&
+        cat > /usr/lib/firefox-esr/distribution/policies.json << 'POLICIES'
+        {
+          \"policies\": {
+            \"ExtensionSettings\": {
+              \"uBlock0@raymondhill.net\": {
+                \"installation_mode\": \"force_installed\",
+                \"install_url\": \"https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi\"
+              },
+              \"jid1-MnnxcxisBPnSXQ@jetpack\": {
+                \"installation_mode\": \"force_installed\",
+                \"install_url\": \"https://addons.mozilla.org/firefox/downloads/latest/privacy-badger17/latest.xpi\"
+              },
+              \"{73a6fe31-595d-460b-a920-fcc0f8843232}\": {
+                \"installation_mode\": \"force_installed\",
+                \"install_url\": \"https://addons.mozilla.org/firefox/downloads/latest/noscript/latest.xpi\"
+              }
+            }
+          }
+        }
+        POLICIES
+        echo 'Firefox + Extensions + ping Ready' &&
+        sleep infinity
       "
 
+  mitm:
+    image: mitmproxy/mitmproxy:latest
+    container_name: MITM
+    command: mitmdump --listen-host 0.0.0.0 --listen-port 8080
+    networks:
+      client-net:
+        ipv4_address: 192.168.71.2
+      server-net:
+        ipv4_address: 192.168.72.2
+    ports:
+      - "8080:8080"
+
+  web:
+    image: nginx:alpine
+    container_name: web-server
+    networks:
+      server-net:
+        ipv4_address: 192.168.72.4
+    ports:
+      - "8081:80"
+    volumes:
+      - ./webroot:/usr/share/nginx/html:ro
+      - ./nginx-logs:/var/log/nginx:rw
+
 networks:
-  net:
+  client-net:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.70.0/24
-          gateway: 192.168.70.1
-
-## we might need to put host and a server on different networks. The following is there in that case:
-#  internal_net:
-#    driver: bridge
-#    ipam:
-#      config:
-#        - subnet: 192.168.70.0/24
-#          gateway: 192.168.70.1
+        - subnet: 192.168.71.0/24
+  server-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.72.0/24
