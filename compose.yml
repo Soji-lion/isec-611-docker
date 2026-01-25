@@ -19,9 +19,9 @@ services:
     command: |
       bash -c "
         apt-get update &&
-        apt-get install -y firefox-esr dbus-x11 ca-certificates wget curl iputils-ping &&
+        apt-get install -y firefox-esr dbus-x11 ca-certificates wget curl iputils-ping xz-utils kdialog &&
         mkdir -p /usr/lib/firefox-esr/distribution &&
-        cat > /usr/lib/firefox-esr/distribution/policies.json << 'POLICIES'
+        echo '
         {
           \"policies\": {
             \"ExtensionSettings\": {
@@ -39,9 +39,29 @@ services:
               }
             }
           }
-        }
-        POLICIES
+        }' > /usr/lib/firefox-esr/distribution/policies.json &&
         echo 'Firefox + Extensions + ping Ready' &&
+
+        wget https://www.torproject.org/dist/torbrowser/15.0.4/tor-browser-linux-x86_64-15.0.4.tar.xz &&
+        tar -xvf tor-browser-linux-x86_64-15.0.4.tar.xz &&
+        cd tor-browser &&
+        sed -i '85,88d' ./Browser/start-tor-browser &&
+        ./start-tor-browser.desktop &&
+        cd / &&
+        echo 'Tor Browser Ready' &&
+
+        touch cleanup.sh &&
+        echo 'TODO: add script to cleanup' &&
+        chmod +x cleanup.sh &&
+        echo \"sed -i '/browser.contentblocking.category/d'  /root/.mozilla/firefox/*.default-esr/prefs.js\" > cleanup.sh &&
+        echo \"echo 'user_pref(\\\"browser.contentblocking.category\\\", \\\"standard\\\");' >> /root/.mozilla/firefox/*.default-esr/prefs.js\" >> cleanup.sh &&
+        touch settings.sh &&
+        echo './cleanup.sh' > settings.sh &&
+        echo \"sed -i '/browser.contentblocking.category/d' /root/.mozilla/firefox/*.default-esr/prefs.js\" >> /settings.sh &&
+        echo \"echo 'user_pref(\\\"browser.contentblocking.category\\\", \\\"strict\\\");' >> /root/.mozilla/firefox/*.default-esr/prefs.js\" >> settings.sh &&
+        echo 'firefox' >> settings.sh &&
+        chmod +x settings.sh &&
+
         sleep infinity
       "
 
