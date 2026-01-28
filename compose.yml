@@ -44,28 +44,64 @@ services:
             }
           }
         }' > /usr/lib/firefox-esr/distribution/policies.json &&
-        echo 'Firefox + Extensions + ping Ready' &&
 
         wget https://www.torproject.org/dist/torbrowser/15.0.4/tor-browser-linux-x86_64-15.0.4.tar.xz &&
         tar -xvf tor-browser-linux-x86_64-15.0.4.tar.xz &&
         cd tor-browser &&
         sed -i '85,88d' ./Browser/start-tor-browser &&
-        ./start-tor-browser.desktop &&
         cd / &&
         echo 'Tor Browser Ready' &&
-
+        firefox &&
+        cp -r /usr/lib/firefox-esr/ /usr/lib/firefox-esr-bak/ &&
+        cp -r /root/.mozilla /root/.mozilla_bak &&
         touch cleanup.sh &&
-        echo 'TODO: add script to cleanup' &&
         chmod +x cleanup.sh &&
-        echo \"sed -i '/browser.contentblocking.category/d'  /root/.mozilla/firefox/*.default-esr/prefs.js\" > cleanup.sh &&
-        echo \"echo 'user_pref(\\\"browser.contentblocking.category\\\", \\\"standard\\\");' >> /root/.mozilla/firefox/*.default-esr/prefs.js\" >> cleanup.sh &&
+        echo \"rm -r /root/.mozilla && rm -r /usr/lib/firefox-esr\" > cleanup.sh &&
+        echo \"cp -r /root/.mozilla_bak /root/.mozilla && cp -r /usr/lib/firefox-esr-bak/ /usr/lib/firefox-esr/ \" >> cleanup.sh &&
+        echo \"cd /root/.mozilla/firefox/*.default-esr\" >> cleanup.sh &&
+        echo \"mv ./extensions/browsec@browsec.com.xpi /root/browsec@browsec.com.xpi\" >> cleanup.sh &&
+        echo \"mv ./extensions/uBlock0@raymondhill.net.xpi /root/uBlock0@raymondhill.net.xpi\" >> cleanup.sh  &&
+        echo \"mv ./extensions/jid1-MnnxcxisBPnSXQ@jetpack.xpi /root/jid1-MnnxcxisBPnSXQ@jetpack.xpi\" >> cleanup.sh &&
+        echo \"mv ./extensions/{73a6fe31-595d-460b-a920-fcc0f8843232}.xpi /root/{73a6fe31-595d-460b-a920-fcc0f8843232}.xpi\" >> cleanup.sh &&
+        echo \"cd /\" >> cleanup.sh &&
+        echo 'Cleanup file is ready' &&
+
         touch settings.sh &&
         echo './cleanup.sh' > settings.sh &&
-        echo \"sed -i '/browser.contentblocking.category/d' /root/.mozilla/firefox/*.default-esr/prefs.js\" >> /settings.sh &&
-        echo \"echo 'user_pref(\\\"browser.contentblocking.category\\\", \\\"strict\\\");' >> /root/.mozilla/firefox/*.default-esr/prefs.js\" >> settings.sh &&
-        echo 'firefox' >> settings.sh &&
-        chmod +x settings.sh &&
+        echo \"echo 'Welcome to settings file'\" >> settings.sh &&
+        echo \"read -p \\\"Do you want to test Firefox or Tor [f/t] \\\" browser\">> settings.sh &&
+        echo \"if [[ \\\"\\\$\browser\\\" == \\\"t\\\" || \\\"\\\$\browser\\\" == \\\"T\\\" ]]; then\" >> settings.sh &&
+        echo \"cd tor-browser\" >> settings.sh &&
+        echo \"./start-tor-browser.desktop\" >> settings.sh &&
+        echo \"else\" >> settings.sh &&
+        echo \"echo 'Configuring Firefox extensions'\" >> settings.sh &&
+        echo \"cd /root/.mozilla/firefox/*.default-esr\" >> settings.sh &&
+        echo \"read -p \\\"Do you want to test Firefox with VPN? [y/n] \\\" vpn\" >> settings.sh &&
+        echo \"read -p \\\"Enable uBlockOrigin? [y/n] \\\" ublock\" >> settings.sh &&
+        echo \"read -p \\\"Enable Privacy Badger? [y/n] \\\" badger\" >> settings.sh &&
+        echo \"read -p \\\"Enable NoScript? [y/n] \\\" noscript\" >> settings.sh &&
+        echo \"read -p \\\"Enable strict browser privacy setting? [y/n]? \\\" privacySetting\" >> settings.sh &&
 
+        echo \"if [[ \\\"\\\$\vpn\\\" == \\\"y\\\" || \\\"\\\$\vpn\\\" == \\\"Y\\\" ]]; then\" >> settings.sh &&
+        echo \"mv /root/browsec@browsec.com.xpi ./extensions/browsec@browsec.com.xpi\" >> settings.sh &&
+        echo 'fi' >> settings.sh &&
+
+        echo \"if [[ \\\"\\\$\ublock\\\" == \\\"y\\\" || \\\"\\\$\ublock\\\" == \\\"Y\\\" ]]; then\" >> settings.sh &&
+        echo \"mv /root/uBlock0@raymondhill.net.xpi ./extensions/uBlock0@raymondhill.net.xpi\" >> settings.sh &&
+        echo 'fi' >> settings.sh &&
+        echo \"if [[ \\\"\\\$\badger\\\" == \\\"y\\\" || \\\"\\\$\badger\\\" == \\\"Y\\\" ]]; then\" >> settings.sh &&
+        echo \"mv /root/jid1-MnnxcxisBPnSXQ@jetpack.xpi ./extensions/jid1-MnnxcxisBPnSXQ@jetpack.xpi\" >> settings.sh &&
+        echo 'fi' >> settings.sh &&
+        echo \"if [[ \\\"\\\$\noscript\\\" == \\\"y\\\" || \\\"\\\$\noscript\\\" == \\\"Y\\\" ]]; then\" >> settings.sh &&
+        echo \"mv /root/{73a6fe31-595d-460b-a920-fcc0f8843232}.xpi ./extensions/{73a6fe31-595d-460b-a920-fcc0f8843232}.xpi\" >> settings.sh &&
+        echo 'fi' >> settings.sh &&
+        echo \"if [[ \\\"\\\$\privacySetting\\\" == \\\"y\\\" || \\\"\\\$\privacySetting\\\" == \\\"Y\\\" ]]; then\" >> settings.sh &&
+        echo \"sed -i '/browser.contentblocking.category/d' ./prefs.js\" >> settings.sh &&
+        echo \"echo 'user_pref(\\\"browser.contentblocking.category\\\", \\\"strict\\\");' >> ./prefs.js\" >> settings.sh &&
+        echo 'fi' >> settings.sh &&
+        echo 'firefox' >> settings.sh &&
+        echo 'fi' >> settings.sh &&
+        chmod +x settings.sh &&
         sleep infinity
       "
 
