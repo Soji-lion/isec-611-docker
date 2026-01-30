@@ -105,30 +105,6 @@ services:
         sleep infinity
       "
 
-  mitm:
-    image: mitmproxy/mitmproxy:latest
-    container_name: MITM
-    command: mitmdump --listen-host 0.0.0.0 --listen-port 8080
-    networks:
-      client-net:
-        ipv4_address: 192.168.71.2
-      server-net:
-        ipv4_address: 192.168.72.2
-    ports:
-      - "8080:8080"
-
-  web:
-    image: nginx:alpine
-    container_name: web-server
-    networks:
-      server-net:
-        ipv4_address: 192.168.72.4
-    ports:
-      - "8081:80"
-    volumes:
-      - ./webroot:/usr/share/nginx/html:ro
-      - ./nginx-logs:/var/log/nginx:rw
-
 networks:
   client-net:
     driver: bridge
