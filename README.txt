@@ -30,3 +30,7 @@ It is suggested to test the degree of privacy by visiting the following addresse
     - WhatIsMyIPAddress (https://whatismyipaddress.com/)
         Detects user's public IP address
         Identifies if the address is part of VPN connection, TOR network, Proxy, etc.
+
+
+Known issues:
+Due to Tor Project only providing the latest version of the Tor Prowser, the link here will become outdated as soon as the new version releases. The link can be updated manually in the compose.yml file
