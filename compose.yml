@@ -45,7 +45,7 @@ services:
           }
         }' > /usr/lib/firefox-esr/distribution/policies.json &&
 
-        wget https://www.torproject.org/dist/torbrowser/15.0.4/tor-browser-linux-x86_64-15.0.4.tar.xz &&
+        wget https://www.torproject.org/dist/torbrowser/15.0.5/tor-browser-linux-x86_64-15.0.5.tar.xz &&
         tar -xvf tor-browser-linux-x86_64-15.0.4.tar.xz &&
         cd tor-browser &&
         sed -i '85,88d' ./Browser/start-tor-browser &&
