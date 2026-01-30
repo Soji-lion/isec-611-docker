@@ -14,7 +14,7 @@ To start the environment:
     Run the start.sh file     
 ###########
 #IMPORTANT:
-#The firefox window that is opened automatically during startup must be closed in order for the sumulation to finish loading. Until it is done, the simulation will only function partially!
+#The firefox window that is opened automatically during startup must be closed in order for the simulation to finish loading. Until it is done, the simulation will only function partially!
 ###########  
     Open host container in a new terminal by executing:
         sudo docker exec -it host /bin/bash
@@ -33,4 +33,4 @@ It is suggested to test the degree of privacy by visiting the following addresse
 
 
 Known issues:
-Due to Tor Project only providing the latest version of the Tor Prowser, the link here will become outdated as soon as the new version releases. The link can be updated manually in the compose.yml file
+Due to Tor Project only providing the latest version of the Tor Browser, the link here will become outdated as soon as the new version releases. The link can be updated manually in the compose.yml file
