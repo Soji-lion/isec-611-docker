@@ -13,8 +13,11 @@ Contains:
 To start the environment:
     Run the start.sh file     
 ###########
+
 #IMPORTANT:
+
 #The firefox window that is opened automatically during startup must be closed in order for the sumulation to finish loading. Until it is done, the simulation will only function partially!
+
 ###########  
     Open host container in a new terminal by executing:
         sudo docker exec -it host /bin/bash
